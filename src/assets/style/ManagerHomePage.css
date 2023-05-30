@@ -1,0 +1,97 @@
+.filters-container{
+   display: flex;
+   justify-content: center;
+   margin-top: 30px;
+}
+.dashboard{
+    display: block;
+    width: 100%;
+}
+.dashboard-header{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: auto;
+    justify-content: center;
+    margin-bottom: 60px;
+}
+.blue-div{
+    background-image: url("../images/dashboard2.png");
+    
+}
+.purple-div{
+    background-image: url("../images/dashboard1.png");
+}
+.dashboard-cell{
+    background-size: 100% 100%;
+    background-position: center;
+    flex-grow: 1;
+   max-width: 343px;
+   min-width: 333px;
+    min-height: 188px;
+    margin: 7px;
+   padding: 8px;
+    background-repeat: no-repeat;
+
+}
+.large-font{
+    font-size: calc( 35px + 1vh );
+  
+}
+.medium-font{
+    font-size: calc( 17px + 1vh );
+  
+}
+.value{
+    color: white;
+    margin-left: 20px;
+   
+}
+.key{
+    font-size: calc( 16px + 1vh );
+    color: rgb(162, 166, 170);
+    margin-left: 22px;
+    margin-bottom: 0px;
+}
+.details{
+    font-size: calc( 16px + 1vh );
+    text-align: right;
+    margin-right: 20px;
+    font-weight: 600;
+  
+}
+.success{
+    color: rgb(48, 248, 75);
+}
+.bad{
+    color: red
+}
+.type-pie{
+    height: 350px;
+    width: 500px;
+    margin: auto;
+}
+.time-for-solving-per-type{
+    height: 500px;
+}
+.small-font{
+    font-size: calc( 12px + 1vh );
+}
+.area-chart{
+    height: 550px;
+}
+.large-top-margin{
+    margin-top: 42px;
+}
+.medium-top-margin{
+    margin-top: 72px;
+}
+.legend{
+    text-align: center;
+    font-style: italic;
+    color: rgb(139, 147, 153);
+    margin-bottom: 70px;
+}
+.custom-top-margin{
+    margin-top: 66px;
+}

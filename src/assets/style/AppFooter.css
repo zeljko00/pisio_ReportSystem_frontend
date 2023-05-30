@@ -1,0 +1,31 @@
+.footer {
+    display: flex;
+    flex-direction: row;
+    padding: 5px;
+    font-size: calc(8px + 1vmin);
+    height: 30px;
+  }
+  .lang-selector{
+    width: 40px;
+    margin-left: 20px;
+}
+.signature-div{
+  margin-right: 60px;
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media only screen  and (max-device-width: 600px)
+ {
+  .footer{
+    color: rgb(174, 186, 199);
+  }
+ }
+ @media only screen  and (min-device-width: 600px)
+ {
+  .footer{
+    color: rgb(115, 120, 125);
+  }
+ }

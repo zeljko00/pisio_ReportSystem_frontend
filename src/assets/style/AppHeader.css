@@ -1,0 +1,55 @@
+.header {
+    padding: 5px;
+    display: flex;
+    flex-direction: row;
+    height: 90px;
+  }
+  
+  .title {
+    text-align: center;
+   
+    font-family: 'Segoe UI','Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', 'Arial', 'Sans-Serif';
+    padding-top: 2.2vh;
+    width: calc(100vw - 2% );
+    font-size: calc(2.8vw + 10px);
+    letter-spacing: 0.25vw;
+    word-spacing: 1.1vw;
+
+  
+  }
+  @media only screen  and (min-device-width: 600px)
+ {
+    .title {
+      color: #1677ff;
+    }
+ }
+ @media only screen  and (max-device-width: 600px)
+ {
+    .title {
+      color: rgb(174, 186, 199);
+    }
+ }
+  /* @media only screen  and (max-device-width: 1100px)
+ {
+    .title {
+      background: linear-gradient(
+        to left, 
+        rgb(2, 23, 46), 
+        rgb(5, 69, 152)
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+ }
+@media only screen  and (min-device-width: 1100px)
+ {   .title {
+  background: linear-gradient(
+    to right, 
+    rgb(1, 29, 59), 
+    rgb(144, 180, 235)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+} */
+  

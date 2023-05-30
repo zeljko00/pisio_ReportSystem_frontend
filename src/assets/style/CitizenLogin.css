@@ -1,0 +1,54 @@
+.login-page{
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: relative;
+    min-height: 100vh;
+}
+@media only screen  and (max-device-width: 600px)
+ {
+    .login-page {
+        background-image: url("../images/phone.jpg");
+        min-height: 120vh;
+    }
+    .login-form-container {
+        background-color: rgba(255, 252, 252, 0.623);
+    }
+    .gray-text{
+        color: rgb(174, 186, 199)
+    }
+    footer{
+        position: absolute;
+        bottom: 0px;
+        left: 0px;
+        right: 0px;
+    }
+ }
+@media only screen  and (min-device-width: 600px)
+ {   .login-page{
+    background-image: url("../images/v3.jpg");
+    }
+    .login-form-container{
+        background-color: rgba(197, 188, 188, 0.09);
+    }
+}
+#login-btn {
+    width: 100%;
+    font-weight:600;
+}
+.login-form-container {
+    margin-left: 60%;
+    padding: 50px 20px 20px 20px;
+    width: calc( 90% - 40px );
+    max-width: 300px;
+    margin-top: 25vh;
+    height: calc(55vh - 210px);
+    margin-bottom: 20vh;
+    border-radius: 16px;
+    box-shadow: 10 40px 30px rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(4px);
+}
+a {
+    font-size: 16px;
+}
+

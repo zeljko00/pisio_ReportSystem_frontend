@@ -1,0 +1,12 @@
+.note-div{
+    font-size: calc( 15px + 0.1vmax) !important;
+    color: rgba(0, 0, 0, 0.42);
+    margin-top: 8px;
+}
+.event-title, .event-info {
+    font-size: calc( 15px + 0.1vw) !important;
+}
+.event-info {
+    min-height: 0px !important;
+    margin-top: 8px;
+}
