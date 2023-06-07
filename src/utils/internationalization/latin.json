@@ -162,5 +162,11 @@
   "year": "Godina",
   "timePerType": "Pregled prosječnog vremena obrade brijave po tipu (u časovima)",
   "reportsPerType": "Pregled pristiglih prijava po tipu",
-  "dynamicPerDay": "Pregled dinamike pristizanja i obrađivanja prijava po danu"
+  "dynamicPerDay": "Pregled dinamike pristizanja i obrađivanja prijava po danu",
+  "address": "Adresa",
+  "timePeriod": "Vremenski period",
+  "24": "24 sata",
+  "7d": "7 dana",
+  "1m": "mjesec dana",
+  "6m": "pola godine"
 }

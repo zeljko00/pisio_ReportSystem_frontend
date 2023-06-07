@@ -1,17 +1,15 @@
 import { createAxiosClient } from "./request.interceptor";
-// export const BASE_URL = "http://localhost:8080";
-export const BASE_URL = "http://192.168.100.8:8080";
+export const BASE_URL = "http://localhost:8080/report_system";
+// export const BASE_URL = "http://192.168.100.8:8080/report_system";
+
 function getToken() {
   try {
-    const token = JSON.parse(sessionStorage.getItem("user")).token;
-    console.log(token);
+    const token = JSON.parse(sessionStorage.getItem("user")).jwt;
     return token;
   } catch (ex) {
     console.log("no token");
-    return "NO_TOKEN";
   }
 }
-
 export const client = createAxiosClient({
   options: {
     baseURL: BASE_URL,

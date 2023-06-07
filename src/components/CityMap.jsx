@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polygon } from "react-leaflet";
+import PropTypes from "prop-types";
 import L from "leaflet";
-import { getActiveEvents } from "../services/eventService";
 import "leaflet/dist/leaflet.css";
 import { BASE_URL } from "../services/axios.service";
 import "../assets/style/CityMap.css";
@@ -13,43 +13,8 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useTranslation } from "react-i18next";
 import { Carousel } from "antd";
 
-function CityMap() {
-  const [events, changeEvents] = useState(null);
+function CityMap(props) {
   const { t } = useTranslation();
-  useEffect(() => {
-    console.log("hit");
-    getActiveEvents()
-      .then((response) => {
-        console.log(response.data);
-        response.data.forEach((event) => {
-          console.log(event);
-          event.coords.forEach((area) => {
-            const counter = Math.random();
-            const coordinates = [];
-            area.forEach((c) => {
-              coordinates.push([c.x, c.y]);
-            });
-
-            const temp = polygons;
-            const poly = {
-              color:
-                event.type === "INFO"
-                  ? infoOptions
-                  : event.type === "DANGER"
-                  ? dangerOptions
-                  : workOptions,
-              coords: coordinates,
-              id: event.id + "-" + counter,
-            };
-            console.log(poly);
-            temp.push(poly);
-            setPolygons(temp);
-          });
-        });
-        changeEvents(response.data);
-      })
-      .catch(() => {});
-  }, []);
 
   const polygon = [
     [44.8726118, 17.2588105],
@@ -125,10 +90,6 @@ function CityMap() {
     [44.8726118, 17.2588105],
   ];
   const limeOptions = { color: "lime" };
-  const infoOptions = { color: "blue" };
-  const dangerOptions = { color: "red" };
-  const workOptions = { color: "yellow" };
-  const [polygons, setPolygons] = useState([]);
   return (
     <div className="mapArea">
       <MapContainer
@@ -141,65 +102,39 @@ function CityMap() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {events &&
-          events.map((event) => {
-            return event.type === "INFO"
-              ? addMarkers(
-                  event.title,
-                  event.description,
-                  event.info,
-                  event.date,
-                  event.x,
-                  event.y,
-                  event.type,
-                  event.creator.department.name,
-                  event.images,
-                  t
-                )
-              : event.type === "DANGER"
-              ? addMarkers(
-                  event.title,
-                  event.description,
-                  event.info,
-                  event.date,
-                  event.x,
-                  event.y,
-                  event.type,
-                  event.creator.department.name,
-                  event.images,
-                  t
-                )
-              : addMarkers(
-                  event.title,
-                  event.description,
-                  event.info,
-                  event.date,
-                  event.x,
-                  event.y,
-                  event.type,
-                  event.creator.department.name,
-                  event.images,
-                  t
-                );
+        {props.events &&
+          props.events.map((event) => {
+            return addMarkers(
+              event.id,
+              event.content,
+              event.date,
+              event.x,
+              event.y,
+              event.type,
+              event.address,
+              event.imagesIDs,
+              event.approved,
+              t
+            );
           })}
         ;
         <Polygon pathOptions={limeOptions} positions={polygon} />
-        {polygons &&
-          polygons.map((p) => {
-            return (
-              <Polygon
-                key={p.id}
-                pathOptions={p.color}
-                positions={p.coords}
-              ></Polygon>
-            );
-          })}
       </MapContainer>
     </div>
   );
 }
-function addMarkers(title, desc, info, date, x, y, type, creator, images, t) {
-  console.log(title + "   " + desc);
+function addMarkers(
+  id,
+  content,
+  date,
+  x,
+  y,
+  type,
+  address,
+  imagesIDs,
+  approved,
+  t
+) {
   const contentStyle = {
     margin: "auto",
     height: "270px",
@@ -213,34 +148,33 @@ function addMarkers(title, desc, info, date, x, y, type, creator, images, t) {
     console.log(currentSlide);
   };
   const markerIcon = new L.Icon({
-    iconUrl: require(type === "INFO"
-      ? "../assets/images/info.png"
-      : type === "DANGER"
-      ? "../assets/images/danger.png"
-      : "../assets/images/work.png"),
-    iconSize:
-      type === "WORK_IN_PROGRESS"
-        ? [25, 25]
-        : type === "INFO"
-        ? [20, 20]
-        : [40, 27],
+    iconUrl: require("../assets/images/danger.png"),
+    iconSize: [40, 27],
   });
   return (
-    <Marker position={[x, y]} icon={markerIcon}>
+    <Marker position={[x, y]} icon={markerIcon} key={id}>
       ;
       <Popup>
-        <h3>{title}</h3>
-        <h4>{creator + "  -  " + date}</h4>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <h3>{type}</h3>
+          <h4>{date.split(".")[0].replace("T", " ")}</h4>
+        </div>
         <Accordion>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="panel1a-content"
             id="panel1a-header"
           >
-            <Typography>{t("details")}</Typography>
+            <Typography>{t("address")}</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <Typography>{desc}</Typography>
+            <Typography>{address}</Typography>
           </AccordionDetails>
         </Accordion>
         <Accordion>
@@ -249,10 +183,10 @@ function addMarkers(title, desc, info, date, x, y, type, creator, images, t) {
             aria-controls="panel1a-content"
             id="panel1a-header"
           >
-            <Typography>{t("feedback")}</Typography>
+            <Typography>{t("info")}</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <Typography>{info}</Typography>
+            <Typography>{content}</Typography>
           </AccordionDetails>
         </Accordion>
         <Accordion>
@@ -265,15 +199,11 @@ function addMarkers(title, desc, info, date, x, y, type, creator, images, t) {
           </AccordionSummary>
           <AccordionDetails>
             <Carousel afterChange={onChange}>
-              {images.map((img) => {
+              {imagesIDs.map((img) => {
                 return (
-                  <div key={img.id}>
+                  <div key={img}>
                     <img
-                      src={
-                        BASE_URL +
-                        "/CityReportSystem/events/active/images/" +
-                        img.id
-                      }
+                      src={BASE_URL + "/reports/images/" + img}
                       style={contentStyle}
                     ></img>
                   </div>
@@ -288,3 +218,6 @@ function addMarkers(title, desc, info, date, x, y, type, creator, images, t) {
 }
 
 export default CityMap;
+CityMap.propTypes = {
+  events: PropTypes.array,
+};
