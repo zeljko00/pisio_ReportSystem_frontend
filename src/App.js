@@ -3,14 +3,14 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import "./App.css";
 import { LogIn } from "./pages/LogIn/index";
 import { CitizenHomePage } from "./pages/CitizenHomePage/index";
-// import { CityOfficialHomePage } from "./pages/CityOfficialHomePage/index";
+import { CityOfficialHomePage } from "./pages/CityOfficialHomePage/index";
 import initializeI18n from "./utils/internationalization/initialize";
 // eslint-disable-next-line no-unused-vars
 import { LocalizationProvider } from "@mui/x-date-pickers";
 // eslint-disable-next-line no-unused-vars
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
-// koristi se za prevodjenje (inicijalizuje se trenutni jezik, na osnovu vrijednosti procitanje iz local storage)
+// koristi se za prevodjenje (inicijalizuje se trenutni jezik, na osnovu vrijednosti procitane iz local storage)
 initializeI18n();
 
 function App() {
@@ -32,7 +32,7 @@ function App() {
           exact
           element={<CitizenHomePage />}
         ></Route>
-        {/* <Route
+        <Route
           path="/ReportSystem/admin/home"
           exact
           element={<CityOfficialHomePage />}
@@ -41,7 +41,7 @@ function App() {
           path="/CityReportSystem/admin"
           exact
           element={<CityOfficialHomePage />}
-        ></Route> */}
+        ></Route>
         <Route path="*" element={<LogIn />}></Route>
       </Routes>
     </Router>

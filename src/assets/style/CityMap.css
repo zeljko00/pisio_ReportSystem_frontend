@@ -2,3 +2,9 @@
 .leaflet-popup-content p{
     margin:0;
 }
+.btn-label{
+    font-size: large;
+}
+.details-container{
+    font-size: calc( 6px + 0.5vw );
+}

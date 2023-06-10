@@ -170,27 +170,6 @@ export function CitizenHomePage() {
       }
     });
   };
-  // const [changing, setChanging] = React.useState(false);
-  // const signal = () => {
-  //   console.log("changing!");
-  //   setChanging(!changing);
-  //   messageApi.open({
-  //     type: "success",
-  //     content: t("successfulProvidingInfo"),
-  //     duration: 0,
-  //   });
-  //   setTimeout(messageApi.destroy, 3000);
-  // };
-  // const contentStyle = {
-  //   margin: "auto",
-  //   height: "370px",
-  //   color: "#fff",
-  //   lineHeight: "260px",
-  //   textAlign: "center",
-  //   background: "#364d79",
-  //   maxWidth: "100%",
-  // };
-  // const onChange = (currentSlide) => {};
 
   return (
     <div className="citizen-home-page">

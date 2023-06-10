@@ -12,16 +12,7 @@ export function getApprovedReports(date, address, type, subtype) {
       (subtype !== undefined ? "&subtype=" + subtype : "")
   );
 }
-export function getReports(
-  approval,
-  date,
-  address,
-  type,
-  subtype,
-  x,
-  y,
-  radius
-) {
+export function getReports(date, address, type, subtype, approval) {
   return client.get(
     "/reports/queue?" +
       (approval !== undefined ? "approval=" + approval : "") +
@@ -31,11 +22,17 @@ export function getReports(
       (subtype !== undefined ? "&subtype=" + subtype : "")
   );
 }
+export function getStats(reports) {
+  return client.post("/stats", JSON.stringify(reports));
+}
 export function postReport(report) {
   return client.post("/reports", report);
 }
 export function changeApproval(id, approval) {
-  return client.put("/reports/" + id, approval);
+  return client.put("/reports/" + id + "?approval=" + approval);
+}
+export function deleteReport(id) {
+  return client.delete("/reports/" + id);
 }
 
 export function deleteImage(id) {

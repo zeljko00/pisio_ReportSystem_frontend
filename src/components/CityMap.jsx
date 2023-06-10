@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polygon } from "react-leaflet";
 import PropTypes from "prop-types";
 import L from "leaflet";
@@ -11,11 +11,17 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useTranslation } from "react-i18next";
-import { Carousel } from "antd";
-
+import { Carousel, message } from "antd";
+import IconButton from "@mui/material/IconButton";
+import DeleteIcon from "@mui/icons-material/Delete";
+import VerifiedIcon from "@mui/icons-material/VerifiedTwoTone";
+import AppBadIcon from "@mui/icons-material/GppBadTwoTone";
+import { deleteReport, changeApproval } from "../services/report.service";
 function CityMap(props) {
   const { t } = useTranslation();
-
+  console.log("CityMap rerender!");
+  const [uiState, changeUiState] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
   const polygon = [
     [44.8726118, 17.2588105],
     [44.8689621, 17.2461076],
@@ -90,8 +96,176 @@ function CityMap(props) {
     [44.8726118, 17.2588105],
   ];
   const limeOptions = { color: "lime" };
+  function addMarkers(event, showSettings) {
+    const handleDeleteReport = () => {
+      deleteReport(event.id)
+        .then((response) => {
+          event.id = -1;
+          changeUiState(!uiState);
+          messageApi.open({
+            type: "success",
+            content: t("reportDeleted"),
+            duration: 0,
+          });
+          setTimeout(messageApi.destroy, 3000);
+        })
+        .catch((error) => {
+          console.log(error);
+          messageApi.open({
+            type: "error",
+            content: t("reportDeletedFailed"),
+            duration: 0,
+          });
+          setTimeout(messageApi.destroy, 3000);
+        });
+    };
+    const changeReportState = (state) => {
+      changeApproval(event.id, state)
+        .then((response) => {
+          event.approved = state;
+          changeUiState(!uiState);
+          messageApi.open({
+            type: "success",
+            content: t("reportStateChanged"),
+            duration: 0,
+          });
+          setTimeout(messageApi.destroy, 3000);
+        })
+        .catch((response) => {
+          messageApi.open({
+            type: "error",
+            content: t("reportStateChangedFailed"),
+            duration: 0,
+          });
+          setTimeout(messageApi.destroy, 3000);
+        });
+    };
+    const contentStyle = {
+      margin: "auto",
+      height: "270px",
+      color: "#fff",
+      lineHeight: "260px",
+      textAlign: "center",
+      background: "#364d79",
+      maxWidth: "100%",
+    };
+    const onChange = (currentSlide) => {
+      console.log(currentSlide);
+    };
+    const markerIconDanger = new L.Icon({
+      iconUrl: require("../assets/images/danger.png"),
+      iconSize: [40, 27],
+    });
+    const markerIconInfo = new L.Icon({
+      iconUrl: require("../assets/images/info.png"),
+      iconSize: [20, 20],
+    });
+    return (
+      <Marker
+        position={[event.x, event.y]}
+        icon={event.approved ? markerIconDanger : markerIconInfo}
+        key={event.id}
+      >
+        ;
+        <Popup>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <h3>{(showSettings ? "#" + event.id + " : " : "") + event.type}</h3>
+            <h4>{event.date.split(".")[0].replace("T", " ")}</h4>
+          </div>
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+              <Typography>{t("address")}</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+                <span className="details-container"> {event.address}</span>
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+              <Typography>{t("info")}</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+                {" "}
+                <span className="details-container"> {event.content}</span>
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+              <Typography>{t("photos")}</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Carousel afterChange={onChange}>
+                {event.imagesIDs.map((img) => {
+                  return (
+                    <div key={img}>
+                      <img
+                        src={BASE_URL + "/reports/images/" + img}
+                        style={contentStyle}
+                      ></img>
+                    </div>
+                  );
+                })}
+              </Carousel>
+            </AccordionDetails>
+          </Accordion>
+          {showSettings && (
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+              >
+                <Typography>{t("settings")}</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                {event.approved ? (
+                  <IconButton onClick={() => changeReportState(false)}>
+                    <span className="btn-label">{t("hide")}</span>
+                    <AppBadIcon color="primary" />
+                  </IconButton>
+                ) : (
+                  <IconButton onClick={() => changeReportState(true)}>
+                    <span className="btn-label">{t("approve")}</span>
+                    <VerifiedIcon color="success" />
+                  </IconButton>
+                )}
+                <IconButton onClick={handleDeleteReport}>
+                  <span className="btn-label">{t("delete")}</span>
+                  <DeleteIcon color="error" />
+                </IconButton>
+              </AccordionDetails>
+            </Accordion>
+          )}
+        </Popup>
+      </Marker>
+    );
+  }
+
   return (
     <div className="mapArea">
+      {contextHolder}
       <MapContainer
         center={[44.78798121640895, 17.201115245677336]}
         zoom={12}
@@ -103,121 +277,20 @@ function CityMap(props) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {props.events &&
-          props.events.map((event) => {
-            return addMarkers(
-              event.id,
-              event.content,
-              event.date,
-              event.x,
-              event.y,
-              event.type,
-              event.address,
-              event.imagesIDs,
-              event.approved,
-              t
-            );
-          })}
+          props.events
+            .filter((e) => e.id !== -1)
+            .map((event) => {
+              return addMarkers(event, props.showSettings);
+            })}
         ;
         <Polygon pathOptions={limeOptions} positions={polygon} />
       </MapContainer>
     </div>
   );
 }
-function addMarkers(
-  id,
-  content,
-  date,
-  x,
-  y,
-  type,
-  address,
-  imagesIDs,
-  approved,
-  t
-) {
-  const contentStyle = {
-    margin: "auto",
-    height: "270px",
-    color: "#fff",
-    lineHeight: "260px",
-    textAlign: "center",
-    background: "#364d79",
-    maxWidth: "100%",
-  };
-  const onChange = (currentSlide) => {
-    console.log(currentSlide);
-  };
-  const markerIcon = new L.Icon({
-    iconUrl: require("../assets/images/danger.png"),
-    iconSize: [40, 27],
-  });
-  return (
-    <Marker position={[x, y]} icon={markerIcon} key={id}>
-      ;
-      <Popup>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          <h3>{type}</h3>
-          <h4>{date.split(".")[0].replace("T", " ")}</h4>
-        </div>
-        <Accordion>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1a-content"
-            id="panel1a-header"
-          >
-            <Typography>{t("address")}</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Typography>{address}</Typography>
-          </AccordionDetails>
-        </Accordion>
-        <Accordion>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1a-content"
-            id="panel1a-header"
-          >
-            <Typography>{t("info")}</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Typography>{content}</Typography>
-          </AccordionDetails>
-        </Accordion>
-        <Accordion>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="panel1a-content"
-            id="panel1a-header"
-          >
-            <Typography>{t("photos")}</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Carousel afterChange={onChange}>
-              {imagesIDs.map((img) => {
-                return (
-                  <div key={img}>
-                    <img
-                      src={BASE_URL + "/reports/images/" + img}
-                      style={contentStyle}
-                    ></img>
-                  </div>
-                );
-              })}
-            </Carousel>
-          </AccordionDetails>
-        </Accordion>
-      </Popup>
-    </Marker>
-  );
-}
 
 export default CityMap;
 CityMap.propTypes = {
   events: PropTypes.array,
+  showSettings: PropTypes.bool,
 };

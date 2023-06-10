@@ -26,8 +26,8 @@
     background-size: 100% 100%;
     background-position: center;
     flex-grow: 1;
-   max-width: 343px;
-   min-width: 333px;
+   max-width: 303px;
+   min-width: 293px;
     min-height: 188px;
     margin: 7px;
    padding: 8px;
@@ -48,8 +48,8 @@
    
 }
 .key{
-    font-size: calc( 16px + 1vh );
-    color: rgb(162, 166, 170);
+    font-size: calc( 18px + 1vh );
+    color: rgb(182, 187, 192);
     margin-left: 22px;
     margin-bottom: 0px;
 }
@@ -58,6 +58,7 @@
     text-align: right;
     margin-right: 20px;
     font-weight: 600;
+    margin: 8px;
   
 }
 .success{
@@ -81,7 +82,7 @@
     height: 550px;
 }
 .large-top-margin{
-    margin-top: 42px;
+    margin-top: 32px;
 }
 .medium-top-margin{
     margin-top: 72px;

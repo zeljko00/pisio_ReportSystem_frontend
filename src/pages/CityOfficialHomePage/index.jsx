@@ -5,207 +5,322 @@ import { useTranslation } from "react-i18next";
 import { TabPanel, TabList, TabContext } from "@mui/lab";
 import BottomNavigation from "@mui/material/BottomNavigation";
 import BottomNavigationAction from "@mui/material/BottomNavigationAction";
-import HistoryIcon from "@mui/icons-material/History";
-import PostAddIcon from "@mui/icons-material/PostAdd";
+import QueryStatsIcon from "@mui/icons-material/QueryStats";
 import MapIcon from "@mui/icons-material/Map";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { Tab, Box } from "@mui/material";
-import AccountBoxIcon from "@mui/icons-material/AccountBox";
-import userImg from "../../assets/images/user.png";
-
 import { LanguageSelector } from "../../components/LanguageSelector";
 import CityMap from "../../components/CityMap";
 import { AppHeader } from "../../layouts/AppHeader";
 import { AppFooter } from "../../layouts/AppFooter";
-
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
 import "../../assets/style/CitizenHomePage.css";
-import "../../assets/style/CityOfficialHomePage.css";
-import // getReportTypes,
-// // postReport,
-// getMyReports,
-// getReportStates,
-"../../services/report.service";
-import EventTable from "../../components/EventTable";
-import ReportTable from "../../components/ReportTable";
+import Avatar from "@mui/material/Avatar";
+import {
+  getReportTypes,
+  getReports,
+  getStats,
+} from "../../services/report.service";
+import { StatsDashboard } from "../../components/StatsDashboard";
 export function CityOfficialHomePage() {
+  const [reportTypes, changeTypes] = useState([]);
+  const [events, changeEvents] = useState([]);
+  const [stats, changeStats] = useState();
+  const [value, setValue] = useState("0");
+  const navigate = useNavigate();
+  const { t } = useTranslation();
   // eslint-disable-next-line no-unused-vars
   const [changed, changeChanged] = useState(false);
-  // eslint-disable-next-line no-unused-vars
-  const [guest, changeGuest] = useState(true);
-  // eslint-disable-next-line no-unused-vars
-  const [user, changeUser] = useState(null);
-
-  // let counter = 1;
-
-  const { t } = useTranslation();
-
+  const user = JSON.parse(sessionStorage.getItem("user"));
+  const [typeFilterValue, changeTypeFilterValue] = useState("");
+  const [dateFilterValue, changeDateFilterValue] = useState("");
+  const dateFilterValues = ["24h", "7d", "31d", "6m"];
+  const [addressFilterValue, changeAddressFilterValue] = useState();
+  const [stateFilterValue, changeStateFilterValue] = useState("");
+  const changeTypeFilterValueWrapper = (value) => {
+    changeTypeFilterValue(value.target.value);
+    filterReports(
+      value.target.value,
+      dateFilterValue,
+      addressFilterValue,
+      stateFilterValue
+    );
+  };
+  const changeDateFilterValueWrapper = (value) => {
+    changeDateFilterValue(value.target.value);
+    filterReports(
+      typeFilterValue,
+      value.target.value,
+      addressFilterValue,
+      stateFilterValue
+    );
+  };
+  const changeAddressFilterValueWrapper = (value) => {
+    changeAddressFilterValue(value.target.value);
+    filterReports(
+      typeFilterValue,
+      dateFilterValue,
+      value.target.value,
+      stateFilterValue
+    );
+  };
+  const changeStateFilterValueWrapper = (value) => {
+    changeStateFilterValue(value.target.value);
+    filterReports(
+      typeFilterValue,
+      dateFilterValue,
+      addressFilterValue,
+      value.target.value
+    );
+  };
+  const filterReports = (type, date, address, approval) => {
+    console.log(type + "  " + date + " " + address + "  " + approval);
+    const subtype = type.includes(" - ") ? type.split(" - ")[1] : undefined;
+    type =
+      type !== "all" && type !== ""
+        ? type.includes(" - ")
+          ? type.split(" - ")[0]
+          : type
+        : undefined;
+    date = date !== "" && date !== "all" ? date : undefined;
+    address = address !== null && address !== "" ? address : undefined;
+    approval = approval !== "" && approval !== "all" ? approval : undefined;
+    getReports(date, address, type, subtype, approval)
+      .then((response) => {
+        console.log("filtered: ");
+        console.log(response.data);
+        changeEvents(response.data);
+        getStats(response.data).then((resp) => {
+          console.log(resp.data);
+          changeStats(resp.data);
+        });
+      })
+      .catch(() => {});
+  };
   useEffect(() => {
-    if (sessionStorage.getItem("tab") !== null) {
-      console.log("saved tab: " + sessionStorage.getItem("tab"));
-      handleChange(null, sessionStorage.getItem("tab"));
-    }
-    // // counter = 1;
-    const temp = JSON.parse(sessionStorage.getItem("user"));
-    if (temp !== null && temp !== undefined) {
-      changeGuest(false);
-      changeUser(temp);
-      console.log("switched user to ");
-      console.log(temp);
-    } else {
-      console.log("no user found");
-      navigate("/");
-    }
+    getReportTypes()
+      .then((response) => {
+        const types = [];
+        response.data.forEach((type) => {
+          types.push({
+            label: t(type.name),
+            value: type.name,
+          });
+          type.subtypes.forEach((st) => {
+            types.push({
+              label: t(type.name + " - " + st),
+              value: type.name + " - " + st,
+            });
+          });
+        });
+        changeTypes(types);
+        console.log(types);
+
+        const temp = [];
+        types.forEach((t) => {
+          temp.push(t);
+        });
+        temp.push({ value: "all", label: t("all") });
+        // changeFilterTypes(temp);
+      })
+      .catch();
+    getReports()
+      .then((response) => {
+        console.log(response.data);
+        changeEvents(response.data);
+        getStats(response.data).then((resp) => {
+          changeStats(resp.data);
+        });
+      })
+      .catch(() => {});
   }, []);
 
-  const [value, setValue] = useState("4");
-
-  const navigate = useNavigate();
-
-  const handleChange = (event, newValue) => {
-    console.log("handling " + newValue);
+  const handleTabChange = (event, newValue) => {
     if (newValue === "-1") {
       sessionStorage.clear();
-      navigate("/CityReportSystem/login");
+      navigate("/ReportSystem/login");
     } else if (newValue !== undefined) {
-      console.log("saving tab: " + newValue);
-      sessionStorage.setItem("tab", newValue);
       setValue(newValue);
     }
   };
 
   return (
-    user !== null &&
-    user !== undefined && (
-      <div className="citizen-home-page">
-        {/* {contextHolder} */}
-        <AppHeader></AppHeader>
+    <div className="citizen-home-page">
+      <AppHeader></AppHeader>
+      <div id="tab-menu">
+        <TabContext value={value}>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <TabList onChange={handleTabChange} value={value} centered>
+              <Tab label={t("cityMap")} value="0" icon={<MapIcon />} />
+              <Tab
+                label={t("statistics")}
+                value="1"
+                icon={<QueryStatsIcon />}
+              />
+              <Tab label={t("logout")} icon={<LogoutIcon />} value="-1"></Tab>
+            </TabList>
+          </Box>
+          <TabPanel value="0">
+            <div className="flex-wrapper">
+              <div className="flex-cont">
+                <div className="personal-info">
+                  <Avatar alt="X" src={user.picture} />
+                  <span style={{ marginLeft: "15px", display: "block" }}>
+                    {user.first_name + " " + user.last_name}
+                  </span>
+                </div>
+                <div className="filters">
+                  <TextField
+                    value={typeFilterValue}
+                    onChange={changeTypeFilterValueWrapper}
+                    select // tell TextField to render select
+                    label={t("type")}
+                    sx={{ m: 1, minWidth: 200 }}
+                  >
+                    <MenuItem value="all">{t("all")}</MenuItem>
+                    {reportTypes.map((ss) => {
+                      return (
+                        <MenuItem key={ss.value} value={ss.value}>
+                          {t(ss.label)}
+                        </MenuItem>
+                      );
+                    })}
+                  </TextField>
 
-        <div id="tab-menu">
-          <TabContext value={value}>
-            <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-              <TabList onChange={handleChange} value={value} centered>
-                <Tab
-                  label={t("cityMap")}
-                  value="1"
-                  icon={<MapIcon />}
-                  initial="1"
-                />
-                <Tab
-                  label={t("arrivedReports")}
-                  value="2"
-                  icon={<PostAddIcon />}
-                />
-                <Tab label={t("events")} value="3" icon={<HistoryIcon />} />
-                <Tab label={t("profile")} value="4" icon={<AccountBoxIcon />} />
-                <Tab label={t("logout")} icon={<LogoutIcon />} value="-1"></Tab>
-              </TabList>
-            </Box>
-            <TabPanel value="1">
-              <CityMap></CityMap>
-            </TabPanel>
-            <TabPanel value="2">
-              <ReportTable></ReportTable>
-              <div className="placeholder-div"></div>
-            </TabPanel>
-            <TabPanel value="3">
-              <EventTable></EventTable>
-              <div className="placeholder-div"></div>
-            </TabPanel>
-            <TabPanel value="4">
-              <div className="placeholder-div">
-                <div id="acc-info-div">
-                  <div id="profile-info-div" className="rounded-edges-div">
-                    <img src={userImg} alt="profile-img" id="user-img"></img>
-                    <div className="label-div bolded-text">
-                      {user.user.firstName} {user.user.lastName}
-                    </div>
-                    <div className="label-div gray-font">
-                      {user.user.education}
-                    </div>
-                    <div className="label-div gray-font">
-                      {user.user.position}
-                    </div>
-                  </div>
-                  <div className="two-row-container">
-                    <div id="department-info-div" className="rounded-edges-div">
-                      <div className="label-div gray-font">
-                        {t("department")}:
-                      </div>
-                      <div className="label-div bolded-text">
-                        {user.user.department.name}
-                      </div>
-                      <div className="label-div gray-font">
-                        {user.user.department.mail}
-                      </div>
-                      <div className="label-div gray-font">
-                        {user.user.department.phone}
-                      </div>
-                    </div>
-                    <div id="data-div" className="rounded-edges-div">
-                      <div className="label-div gray-font">
-                        {t("createdEvents")}:
-                        <span className="count">
-                          {" " + user.user.createdEventsNum}
-                        </span>
-                      </div>
-                      <div className="label-div gray-font">
-                        {t("activeEvents")}:
-                        <span className="count">
-                          {" " + user.user.activeEventsNum}
-                        </span>
-                      </div>
-                      <div className="label-div gray-font">
-                        {t("solvedReports")}:
-                        <span className="count">
-                          {" " + user.user.solvedReports}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  <TextField
+                    value={dateFilterValue}
+                    onChange={changeDateFilterValueWrapper}
+                    select // tell TextField to render select
+                    label={t("timePeriod")}
+                    sx={{ m: 1, minWidth: 200 }}
+                  >
+                    <MenuItem value="all">{t("all")}</MenuItem>
+                    {dateFilterValues.map((ss) => {
+                      return (
+                        <MenuItem key={ss} value={ss}>
+                          {t(ss)}
+                        </MenuItem>
+                      );
+                    })}
+                  </TextField>
+                  <TextField
+                    value={stateFilterValue}
+                    onChange={changeStateFilterValueWrapper}
+                    select // tell TextField to render select
+                    label={t("state")}
+                    sx={{ m: 1, minWidth: 200 }}
+                  >
+                    <MenuItem value="all">{t("all")}</MenuItem>
+                    <MenuItem value="true">{t("approved")}</MenuItem>
+                    <MenuItem value="false">{t("waiting")}</MenuItem>
+                  </TextField>
+                  <TextField
+                    value={addressFilterValue}
+                    onChange={changeAddressFilterValueWrapper}
+                    label={t("address")}
+                    sx={{ m: 1, minWidth: 300 }}
+                  ></TextField>
                 </div>
               </div>
-            </TabPanel>
-          </TabContext>
-        </div>
-        <div id="lng-select">
-          <LanguageSelector></LanguageSelector>
-        </div>
+              <CityMap events={events} showSettings={true}></CityMap>
+            </div>
+          </TabPanel>
+          <TabPanel value="1">
+            <div className="flex-wrapper">
+              <div className="flex-cont">
+                <div className="personal-info">
+                  <Avatar alt="X" src={user.picture} />
+                  <span style={{ marginLeft: "15px", display: "block" }}>
+                    {user.first_name + " " + user.last_name}
+                  </span>
+                </div>
+                <div className="filters">
+                  <TextField
+                    value={typeFilterValue}
+                    onChange={changeTypeFilterValueWrapper}
+                    select // tell TextField to render select
+                    label={t("type")}
+                    sx={{ m: 1, minWidth: 200 }}
+                  >
+                    <MenuItem value="all">{t("all")}</MenuItem>
+                    {reportTypes.map((ss) => {
+                      return (
+                        <MenuItem key={ss.value} value={ss.value}>
+                          {t(ss.label)}
+                        </MenuItem>
+                      );
+                    })}
+                  </TextField>
 
-        <div id="bottom-menu">
-          <Box sx={{ centered: true }}>
-            <BottomNavigation showLabels value={value} onChange={handleChange}>
-              <BottomNavigationAction
-                label={t("map")}
-                value="1"
-                icon={<MapIcon />}
-              />
-              <BottomNavigationAction
-                label={t("arrivedReportsMobile")}
-                value="2"
-                icon={<PostAddIcon />}
-              />
-              <BottomNavigationAction
-                label={t("eventsMobile")}
-                value="3"
-                icon={<HistoryIcon />}
-              />
-              <BottomNavigationAction
-                label={t("profileMobile")}
-                value="4"
-                icon={<AccountBoxIcon />}
-              />
-              <BottomNavigationAction
-                label={t("logoutMobile")}
-                value="-1"
-                icon={<LogoutIcon />}
-              />
-            </BottomNavigation>
-          </Box>
-        </div>
-        <div id="footer">
-          <AppFooter></AppFooter>
-        </div>
+                  <TextField
+                    value={dateFilterValue}
+                    onChange={changeDateFilterValueWrapper}
+                    select // tell TextField to render select
+                    label={t("timePeriod")}
+                    sx={{ m: 1, minWidth: 200 }}
+                  >
+                    <MenuItem value="all">{t("all")}</MenuItem>
+                    {dateFilterValues.map((ss) => {
+                      return (
+                        <MenuItem key={ss} value={ss}>
+                          {t(ss)}
+                        </MenuItem>
+                      );
+                    })}
+                  </TextField>
+                  <TextField
+                    value={stateFilterValue}
+                    onChange={changeStateFilterValueWrapper}
+                    select // tell TextField to render select
+                    label={t("state")}
+                    sx={{ m: 1, minWidth: 200 }}
+                  >
+                    <MenuItem value="all">{t("all")}</MenuItem>
+                    <MenuItem value="true">{t("approved")}</MenuItem>
+                    <MenuItem value="false">{t("waiting")}</MenuItem>
+                  </TextField>
+                  <TextField
+                    value={addressFilterValue}
+                    onChange={changeAddressFilterValueWrapper}
+                    label={t("address")}
+                    sx={{ m: 1, minWidth: 300 }}
+                  ></TextField>
+                </div>
+              </div>
+              <StatsDashboard stats={stats}></StatsDashboard>
+            </div>
+          </TabPanel>
+        </TabContext>
       </div>
-    )
+      <div id="lng-select">
+        <LanguageSelector></LanguageSelector>
+      </div>
+
+      <div id="bottom-menu">
+        <Box sx={{ centered: true }}>
+          <BottomNavigation showLabels value={value} onChange={handleTabChange}>
+            <BottomNavigationAction
+              label={t("cityMap")}
+              value="0"
+              icon={<MapIcon />}
+            />
+            <BottomNavigationAction
+              label={t("statistics")}
+              value="1"
+              icon={<QueryStatsIcon />}
+            />
+            <BottomNavigationAction
+              label={t("logoutMobile")}
+              value="-1"
+              icon={<LogoutIcon />}
+            />
+          </BottomNavigation>
+        </Box>
+      </div>
+      <div id="footer">
+        <AppFooter></AppFooter>
+      </div>
+    </div>
   );
 }
