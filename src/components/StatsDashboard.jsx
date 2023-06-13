@@ -1,36 +1,11 @@
-/* eslint-disable no-unused-vars */
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import { TabPanel, TabList, TabContext } from "@mui/lab";
-import BottomNavigation from "@mui/material/BottomNavigation";
-import BottomNavigationAction from "@mui/material/BottomNavigationAction";
-import HistoryIcon from "@mui/icons-material/History";
-import LogoutIcon from "@mui/icons-material/Logout";
-import { Tab, Box } from "@mui/material";
-import QueryStatsIcon from "@mui/icons-material/QueryStats";
-import { LanguageSelector } from "./LanguageSelector";
-import FormControl from "@mui/material/FormControl";
-import Select from "@mui/material/Select";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import CityMap from "./CityMap";
-import { AppHeader } from "../layouts/AppHeader";
-import { AppFooter } from "../layouts/AppFooter";
 import "../assets/style/CitizenHomePage.css";
 import "../assets/style/ManagerHomePage.css";
-import { getStats, getYearStats } from "../services/stats.service";
-import { getReportTypes } from "../services/report.service";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { ReportMap } from "./ReportMap";
-import { LayersControl } from "react-leaflet";
 import PropTypes from "prop-types";
 import {
   PieChart,
   Pie,
-  Sector,
   Cell,
   ResponsiveContainer,
   Tooltip,
@@ -43,30 +18,17 @@ import {
   AreaChart,
   Area,
 } from "recharts";
-import { UserSwitchOutlined } from "@ant-design/icons";
 export function StatsDashboard(props) {
   const { t } = useTranslation();
 
-  const array = [];
-  // const temp = [];
-  // response.data.dataPerDay.forEach((tuple) => {
-  //   temp.push({
-  //     name: tuple.date,
-  //     zaprimljeno: tuple.received,
-  //     obrađeno: tuple.solved,
-  //   });
-  // });
-
-  // setAreaChartData(temp);
-
-  const parseTimeInMin = (time) => {
-    const days = Math.floor(time / (60 * 24));
-    let mins = time - days * 60 * 24;
-    const hours = Math.floor(mins / 60);
-    mins = Math.floor(mins - hours * 60);
-    if (isNaN(days) || isNaN(hours) || isNaN(mins)) return [0, 0, 0];
-    return [days, hours, mins];
-  };
+  // const parseTimeInMin = (time) => {
+  //   const days = Math.floor(time / (60 * 24));
+  //   let mins = time - days * 60 * 24;
+  //   const hours = Math.floor(mins / 60);
+  //   mins = Math.floor(mins - hours * 60);
+  //   if (isNaN(days) || isNaN(hours) || isNaN(mins)) return [0, 0, 0];
+  //   return [days, hours, mins];
+  // };
   return (
     <div>
       <div className="dashboard">
@@ -177,6 +139,37 @@ export function StatsDashboard(props) {
         )}
         {props.stats.count > 0 && (
           <>
+            <div className="time-for-solving-per-type">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  width={500}
+                  height={300}
+                  data={props.stats.dataPerAddress.map((item) => {
+                    return {
+                      name: item.address,
+                      zaprimljeno: item.count,
+                      odobreno: item.approved,
+                      amt: 0.3,
+                    };
+                  })}
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis dataKey="zaprimljeno" />
+                  <Tooltip />
+
+                  <Bar dataKey="zaprimljeno" fill="#8884d8" />
+                  <Bar dataKey="odobreno" fill="#ffc658" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="legend">{t("reportsPerAddress")}</div>{" "}
             <div className="area-chart">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
@@ -223,13 +216,6 @@ export function StatsDashboard(props) {
     </div>
   );
 }
-
-const data = [
-  { name: "Group A", value: 400 },
-  { name: "Group B", value: 300 },
-  { name: "Group C", value: 300 },
-  { name: "Group D", value: 200 },
-];
 
 const COLORS = [
   "#0088FE",

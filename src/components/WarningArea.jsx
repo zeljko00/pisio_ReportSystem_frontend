@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 import "../assets/style/EventLocation.css";
 import { useTranslation } from "react-i18next";
 import PropTypes from "prop-types";
-function EventLocation(props) {
+export function WarningArea(props) {
   console.log(props);
   const { t } = useTranslation();
   const event = props.event;
@@ -202,8 +202,8 @@ function addMarkers(title, desc, info, date, x, y, type, creator, images, t) {
     </Marker>
   );
 }
-EventLocation.propTypes = {
+WarningArea.propTypes = {
   event: PropTypes.object,
 };
 
-export default EventLocation;
+export default WarningArea;

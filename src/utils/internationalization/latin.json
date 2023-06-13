@@ -146,7 +146,7 @@
   "hours": "sati",
   "mins": "minuta",
   "total": "prijava zaprimljeno",
-  "solved": "prijava obrađeno",
+  "solved": "prijava prihvaćeno",
   "avgTime": "vrijeme obrade",
   "maxTime": "najduža obrada",
   "received": "Zaprimljeno",
@@ -178,5 +178,8 @@
   "reportStateChanged": "Uspješna izmjena stanja prijave!",
   "reportStateChangedFailed": "Neuspješna izmjena stanja prijave. Pokušajte Ponovo!",
   "reportDeleted": "Prijava je uspješno trajno uklonjena!",
-  "reportDeletedFailed": "Neuspješno uklanjanje prijave. Pokušajte Ponovo!"
+  "reportDeletedFailed": "Neuspješno uklanjanje prijave. Pokušajte Ponovo!",
+  "reportsPerAddress": "Pregled adresa sa najviše prijava",
+  "LOW": "Nizak",
+  "HIGH": "Visok"
 }

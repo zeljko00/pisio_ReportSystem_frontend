@@ -51,7 +51,10 @@ export function CitizenHomePage() {
   const [dateFilterValue, changeDateFilterValue] = useState("");
   const dateFilterValues = ["24h", "7d", "31d", "6m"];
   const [addressFilterValue, changeAddressFilterValue] = useState();
-
+  const newCoords = (pos) => {
+    console.log(pos);
+    changePosition(pos);
+  };
   const changeTypeFilterValueWrapper = (value) => {
     changeTypeFilterValue(value.target.value);
     filterReports(value.target.value, dateFilterValue, addressFilterValue);
@@ -138,12 +141,11 @@ export function CitizenHomePage() {
         });
         setTimeout(messageApi.destroy, 3000);
       } else {
-        console.log("sending report");
         const reportRequest = {
           content: values.content,
           type: values.type,
-          x: position[0],
-          y: position[1],
+          x: position.lat,
+          y: position.lng,
           id: ident,
         };
         postReport(reportRequest)
@@ -267,7 +269,7 @@ export function CitizenHomePage() {
                 </Form.Item>
                 <Form.Item>
                   <LocationPicker
-                    callback={changePosition}
+                    callback={newCoords}
                     deviceLocation={true}
                   ></LocationPicker>
                 </Form.Item>

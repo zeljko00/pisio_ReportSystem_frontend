@@ -1,5 +1,12 @@
-import React, { useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polygon } from "react-leaflet";
+import React from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  Polygon,
+  Circle,
+} from "react-leaflet";
 import PropTypes from "prop-types";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -20,8 +27,31 @@ import { deleteReport, changeApproval } from "../services/report.service";
 function CityMap(props) {
   const { t } = useTranslation();
   console.log("CityMap rerender!");
-  const [uiState, changeUiState] = useState(false);
+  // const [uiState, changeUiState] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+  const redPallete = [
+    "#D40000",
+    "#E8000D",
+    "#FF0000",
+    "#8B0000",
+    "#FF4040",
+    "#FE2712",
+    "#7C0A02",
+    "#560319",
+    "#FF0038",
+  ];
+  const yellowPallete = [
+    "#FFFF00",
+    "#E8F48C",
+    "#FFC40C",
+    "#B8860B",
+    "#FF4500",
+    "#FFA500",
+    "#FFB347",
+    "#E9692C",
+    "#CB410B",
+    "#FF9933",
+  ];
   const polygon = [
     [44.8726118, 17.2588105],
     [44.8689621, 17.2461076],
@@ -95,13 +125,18 @@ function CityMap(props) {
     [44.8679888, 17.2598405],
     [44.8726118, 17.2588105],
   ];
+  const warningIcon = new L.Icon({
+    iconUrl: require("../assets/images/alert.png"),
+    iconSize: [50, 50],
+  });
   const limeOptions = { color: "lime" };
   function addMarkers(event, showSettings) {
     const handleDeleteReport = () => {
       deleteReport(event.id)
         .then((response) => {
           event.id = -1;
-          changeUiState(!uiState);
+          // changeUiState(!uiState);
+          props.render();
           messageApi.open({
             type: "success",
             content: t("reportDeleted"),
@@ -123,7 +158,8 @@ function CityMap(props) {
       changeApproval(event.id, state)
         .then((response) => {
           event.approved = state;
-          changeUiState(!uiState);
+          // changeUiState(!uiState);
+          props.render();
           messageApi.open({
             type: "success",
             content: t("reportStateChanged"),
@@ -284,6 +320,64 @@ function CityMap(props) {
             })}
         ;
         <Polygon pathOptions={limeOptions} positions={polygon} />
+        {props.warnings &&
+          props.warnings.map((w) => {
+            let wX = 0;
+            let wY = 0;
+            w.reports.forEach((r) => {
+              wX = wX + r.x;
+              wY = wY + r.y;
+            });
+            console.log(
+              w.level === "LOW"
+                ? yellowPallete[
+                    Math.floor(Math.random() * yellowPallete.length)
+                  ]
+                : redPallete[Math.floor(Math.random() * redPallete.length)]
+            );
+            return (
+              <>
+                <Circle
+                  center={{
+                    lat: w.x,
+                    lng: w.y,
+                  }}
+                  fillColor={
+                    w.level === "LOW"
+                      ? yellowPallete[
+                          Math.floor(Math.random() * yellowPallete.length)
+                        ]
+                      : redPallete[
+                          Math.floor(Math.random() * redPallete.length)
+                        ]
+                  }
+                  stroke={false}
+                  fillOpacity={0.5}
+                  radius={w.r + 1}
+                  key={w.id}
+                />
+                <Marker
+                  position={[wX / w.reports.length, wY / w.reports.length]}
+                  icon={warningIcon}
+                  key={w.id}
+                >
+                  ;
+                  <Popup>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                      }}
+                    >
+                      <h2>{"#" + w.id + " - " + t(w.level)}</h2>
+                      <h3>{w.date.split(".")[0].replace("T", " ")}</h3>
+                    </div>
+                  </Popup>
+                </Marker>
+              </>
+            );
+          })}
       </MapContainer>
     </div>
   );
@@ -292,5 +386,7 @@ function CityMap(props) {
 export default CityMap;
 CityMap.propTypes = {
   events: PropTypes.array,
+  warnings: PropTypes.array,
   showSettings: PropTypes.bool,
+  render: PropTypes.func,
 };

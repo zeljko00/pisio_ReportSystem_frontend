@@ -11,15 +11,14 @@ import PropTypes from "prop-types";
 function LocationPicker(props) {
   const { t } = useTranslation();
   const markerRef = useRef(null);
-  const deviceLocation = props.deviceLocation;
   const eventHandlers = useMemo(() => ({
     dragend() {
       const marker = markerRef.current;
       if (marker != null) {
         const pos = marker.getLatLng();
         setPosition([pos.lat, pos.lng]);
-        props.callback(position);
-        console.log(position);
+        console.log(pos);
+        props.callback(pos);
       }
     },
   }));
@@ -39,7 +38,7 @@ function LocationPicker(props) {
     navigator.geolocation.getCurrentPosition(
       function (pos) {
         setPosition([pos.coords.latitude, pos.coords.longitude]);
-        props.callback(position);
+        props.callback([pos.coords.latitude, pos.coords.longitude]);
       },
       function (error) {
         alert(error.message);
@@ -143,21 +142,20 @@ function LocationPicker(props) {
           ref={markerRef}
         ></Marker>
       </MapContainer>
-      {deviceLocation && (
-        <Button
-          type="primary"
-          className="location-button"
-          onClick={() => getLocation()}
-          id="locate-btn"
-          style={{
-            fontSize: "20px",
-            lineHeight: "20px",
-            margin: "20px 0px 0px 0px",
-          }}
-        >
-          {t("locate")}
-        </Button>
-      )}
+
+      <Button
+        type="primary"
+        className="location-button"
+        onClick={() => getLocation()}
+        id="locate-btn"
+        style={{
+          fontSize: "20px",
+          lineHeight: "20px",
+          margin: "20px 0px 0px 0px",
+        }}
+      >
+        {t("locate")}
+      </Button>
     </div>
   );
 }

@@ -17,15 +17,25 @@ import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import "../../assets/style/CitizenHomePage.css";
 import Avatar from "@mui/material/Avatar";
+import Badge from "@mui/material/Badge";
+import MailIcon from "@mui/icons-material/Mail";
+import Menu from "@mui/material/Menu";
+import IconButton from "@mui/material/IconButton";
 import {
   getReportTypes,
   getReports,
   getStats,
 } from "../../services/report.service";
 import { StatsDashboard } from "../../components/StatsDashboard";
+import NotificationImportantIcon from "@mui/icons-material/NotificationImportant";
+import { detect } from "../../services/anomaly.service";
+import WarningIcon from "@mui/icons-material/Warning";
+import LightbulbIcon from "@mui/icons-material/Lightbulb";
 export function CityOfficialHomePage() {
   const [reportTypes, changeTypes] = useState([]);
   const [events, changeEvents] = useState([]);
+  const [warnings, changeWarnings] = useState([]);
+  const [uiState, changeUiState] = useState(false);
   const [stats, changeStats] = useState();
   const [value, setValue] = useState("0");
   const navigate = useNavigate();
@@ -38,6 +48,9 @@ export function CityOfficialHomePage() {
   const dateFilterValues = ["24h", "7d", "31d", "6m"];
   const [addressFilterValue, changeAddressFilterValue] = useState();
   const [stateFilterValue, changeStateFilterValue] = useState("");
+  const render = () => {
+    changeUiState(!uiState);
+  };
   const changeTypeFilterValueWrapper = (value) => {
     changeTypeFilterValue(value.target.value);
     filterReports(
@@ -134,6 +147,12 @@ export function CityOfficialHomePage() {
         });
       })
       .catch(() => {});
+    detect()
+      .then((response) => {
+        console.log(response.data);
+        changeWarnings(response.data);
+      })
+      .catch(() => {});
   }, []);
 
   const handleTabChange = (event, newValue) => {
@@ -144,7 +163,19 @@ export function CityOfficialHomePage() {
       setValue(newValue);
     }
   };
-
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  const handleSelectWarn = (id) => {
+    warnings.forEach((w) => {
+      if (w.id === id) console.log(w);
+    });
+  };
   return (
     <div className="citizen-home-page">
       <AppHeader></AppHeader>
@@ -165,11 +196,74 @@ export function CityOfficialHomePage() {
             <div className="flex-wrapper">
               <div className="flex-cont">
                 <div className="personal-info">
-                  <Avatar alt="X" src={user.picture} />
+                  <Avatar src={user.picture} />
                   <span style={{ marginLeft: "15px", display: "block" }}>
                     {user.first_name + " " + user.last_name}
                   </span>
                 </div>
+                <div className="mailbox">
+                  <Badge
+                    badgeContent={
+                      events.filter((e) => e.approved === false && e.id !== -1)
+                        .length
+                    }
+                    color="primary"
+                  >
+                    <MailIcon color="action" />
+                  </Badge>
+                </div>
+                {warnings.length > 0 && (
+                  <div className="mailbox">
+                    <IconButton onClick={handleClick}>
+                      <Badge badgeContent={warnings.length} color="primary">
+                        <NotificationImportantIcon
+                          sx={{ color: "red" }}
+                          color="action"
+                        />
+                      </Badge>
+                    </IconButton>
+
+                    <Menu
+                      id="long-menu"
+                      MenuListProps={{
+                        "aria-labelledby": "long-button",
+                      }}
+                      anchorEl={anchorEl}
+                      open={open}
+                      onClose={handleClose}
+                      PaperProps={{
+                        style: {
+                          maxHeight: 48 * 4.5,
+                          width: "320px",
+                        },
+                      }}
+                    >
+                      {warnings.map((option) => (
+                        <MenuItem
+                          key={option.id}
+                          // selected={option === "Pyxis"}
+                          onClick={() => handleSelectWarn(option.id)}
+                        >
+                          {option.level === "HIGH" ? (
+                            <WarningIcon
+                              sx={{ color: "red", marginRight: "10px" }}
+                            ></WarningIcon>
+                          ) : (
+                            <LightbulbIcon
+                              sx={{ color: "orange", marginRight: "10px" }}
+                            ></LightbulbIcon>
+                          )}
+                          {" #" +
+                            option.id +
+                            " : " +
+                            option.date.split(".")[0].replace("T", " ") +
+                            " - " +
+                            t(option.level)}
+                        </MenuItem>
+                      ))}
+                    </Menu>
+                  </div>
+                )}
                 <div className="filters">
                   <TextField
                     value={typeFilterValue}
@@ -223,18 +317,87 @@ export function CityOfficialHomePage() {
                   ></TextField>
                 </div>
               </div>
-              <CityMap events={events} showSettings={true}></CityMap>
+              <CityMap
+                events={events}
+                showSettings={true}
+                render={render}
+                warnings={warnings}
+              ></CityMap>
             </div>
           </TabPanel>
           <TabPanel value="1">
             <div className="flex-wrapper">
               <div className="flex-cont">
                 <div className="personal-info">
-                  <Avatar alt="X" src={user.picture} />
+                  <Avatar src={user.picture} />
                   <span style={{ marginLeft: "15px", display: "block" }}>
                     {user.first_name + " " + user.last_name}
                   </span>
                 </div>
+                <div className="mailbox">
+                  <Badge
+                    badgeContent={
+                      events.filter((e) => e.approved === false && e.id !== -1)
+                        .length
+                    }
+                    color="primary"
+                  >
+                    <MailIcon color="action" />
+                  </Badge>{" "}
+                </div>
+                {warnings.length > 0 && (
+                  <div className="mailbox">
+                    <IconButton onClick={handleClick}>
+                      <Badge badgeContent={warnings.length} color="primary">
+                        <NotificationImportantIcon
+                          sx={{ color: "red" }}
+                          color="action"
+                        />
+                      </Badge>
+                    </IconButton>
+
+                    <Menu
+                      id="long-menu"
+                      MenuListProps={{
+                        "aria-labelledby": "long-button",
+                      }}
+                      anchorEl={anchorEl}
+                      open={open}
+                      onClose={handleClose}
+                      PaperProps={{
+                        style: {
+                          maxHeight: 48 * 4.5,
+                          width: "320px",
+                        },
+                      }}
+                    >
+                      {warnings.map((option) => (
+                        <MenuItem
+                          key={option.id}
+                          // selected={option === "Pyxis"}
+                          onClick={() => handleSelectWarn(option.id)}
+                        >
+                          {option.level === "HIGH" ? (
+                            <WarningIcon
+                              sx={{ color: "red", marginRight: "10px" }}
+                            ></WarningIcon>
+                          ) : (
+                            <LightbulbIcon
+                              sx={{ color: "orange", marginRight: "10px" }}
+                            ></LightbulbIcon>
+                          )}
+                          {" #" +
+                            option.id +
+                            " : " +
+                            option.date.split(".")[0].replace("T", " ") +
+                            " - " +
+                            t(option.level)}
+                        </MenuItem>
+                      ))}
+                    </Menu>
+                  </div>
+                )}
+
                 <div className="filters">
                   <TextField
                     value={typeFilterValue}
