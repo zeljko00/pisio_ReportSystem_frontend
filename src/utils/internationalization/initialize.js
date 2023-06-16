@@ -3,8 +3,9 @@ import { initReactI18next } from "react-i18next";
 // files with translations for specific languages
 import latin from "./latin.json";
 import cyrillic from "./cyrillic.json";
+import english from "./english.json";
 
-export const supportedLanguages = ["latin", "cyrillic"];
+export const supportedLanguages = ["latin", "cyrillic", "english"];
 
 const initializeI18N = () => {
   i18n.use(initReactI18next).init({
@@ -14,6 +15,9 @@ const initializeI18N = () => {
       },
       cyrillic: {
         translation: cyrillic,
+      },
+      english: {
+        translation: english,
       },
     },
     // trying to obtain previously used langugage, which is stored in local storage

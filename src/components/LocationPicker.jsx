@@ -18,7 +18,7 @@ function LocationPicker(props) {
         const pos = marker.getLatLng();
         setPosition([pos.lat, pos.lng]);
         console.log(pos);
-        props.callback(pos);
+        props.callback([pos.lat, pos.lng]);
       }
     },
   }));
@@ -38,6 +38,7 @@ function LocationPicker(props) {
     navigator.geolocation.getCurrentPosition(
       function (pos) {
         setPosition([pos.coords.latitude, pos.coords.longitude]);
+        console.log(pos);
         props.callback([pos.coords.latitude, pos.coords.longitude]);
       },
       function (error) {

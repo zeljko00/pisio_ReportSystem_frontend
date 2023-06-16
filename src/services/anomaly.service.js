@@ -1,5 +1,5 @@
-import { client } from "./axios.service";
+import { detectionClient } from "./axios.service";
 
 export function detect(accessToken) {
-  return client.get("/anomaly_detection");
+  return detectionClient.get("/anomaly_detection");
 }

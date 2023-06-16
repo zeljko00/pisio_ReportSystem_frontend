@@ -1,8 +1,11 @@
 import { createAxiosClient } from "./request.interceptor";
-export const BASE_URL = "http://localhost:8080/report_system";
-// export const BASE_URL = "http://192.168.100.8:8080/report_system";
+export const AUTH_BASE_URL = process.env.REACT_APP_AUTH_BASE_URL;
+export const REPORT_BASE_URL = process.env.REACT_APP_REPORT_BASE_URL;
+export const STATS_BASE_URL = process.env.REACT_APP_STATS_BASE_URL;
+export const DETECTION_BASE_URL = process.env.REACT_APP_DETECTION_BASE_URL;
 
 function getToken() {
+  console.log(AUTH_BASE_URL);
   try {
     const token = JSON.parse(sessionStorage.getItem("user")).jwt;
     return token;
@@ -10,9 +13,39 @@ function getToken() {
     console.log("no token");
   }
 }
-export const client = createAxiosClient({
+export const authClient = createAxiosClient({
   options: {
-    baseURL: BASE_URL,
+    baseURL: AUTH_BASE_URL,
+    timeout: 300000,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  },
+  getToken,
+});
+export const reportsClient = createAxiosClient({
+  options: {
+    baseURL: REPORT_BASE_URL,
+    timeout: 300000,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  },
+  getToken,
+});
+export const statsClient = createAxiosClient({
+  options: {
+    baseURL: STATS_BASE_URL,
+    timeout: 300000,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  },
+  getToken,
+});
+export const detectionClient = createAxiosClient({
+  options: {
+    baseURL: DETECTION_BASE_URL,
     timeout: 300000,
     headers: {
       "Content-Type": "application/json",

@@ -1,7 +1,7 @@
-import { client } from "./axios.service";
+import { authClient } from "./axios.service";
 
 export function login(accessToken) {
-  return client.post(
+  return authClient.post(
     "/auth/login",
     JSON.stringify({
       value: accessToken,

@@ -27,6 +27,8 @@ export function LogIn() {
   const handleAuthResponse = (response) => {
     // console.log(response.credential);
     const accesToken = response.credential;
+    console.log("google :" + accesToken);
+    // sessionStorage.setItem("oauth", accesToken);
     login(accesToken)
       .then((result) => {
         const user = result.data;

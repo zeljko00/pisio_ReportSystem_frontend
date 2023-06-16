@@ -10,7 +10,7 @@ import {
 import PropTypes from "prop-types";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { BASE_URL } from "../services/axios.service";
+import { REPORT_BASE_URL } from "../services/axios.service";
 import "../assets/style/CityMap.css";
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
@@ -257,7 +257,7 @@ function CityMap(props) {
                   return (
                     <div key={img}>
                       <img
-                        src={BASE_URL + "/reports/images/" + img}
+                        src={REPORT_BASE_URL + "/reports/images/" + img}
                         style={contentStyle}
                       ></img>
                     </div>
@@ -354,12 +354,12 @@ function CityMap(props) {
                   stroke={false}
                   fillOpacity={0.5}
                   radius={w.r + 1}
-                  key={w.id}
+                  key={w.id + "#" + w.r}
                 />
                 <Marker
                   position={[wX / w.reports.length, wY / w.reports.length]}
                   icon={warningIcon}
-                  key={w.id}
+                  key={"c" + w.id + "#" + w.r}
                 >
                   ;
                   <Popup>

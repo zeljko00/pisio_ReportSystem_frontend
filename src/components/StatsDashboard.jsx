@@ -47,11 +47,11 @@ export function StatsDashboard(props) {
               {props.stats.approved + " ("}
               {props.stats.approvedPercentage >= 0.7 ? (
                 <span className="success">
-                  {props.stats.approvedPercentage.toFixed(2) * 100 + "%"}
+                  {(props.stats.approvedPercentage * 100).toFixed(2) + "%"}
                 </span>
               ) : (
                 <span className="bad">
-                  {props.stats.approvedPercentage.toFixed(2) * 100 + "%"}
+                  {(props.stats.approvedPercentage * 100).toFixed(2) + "%"}
                 </span>
               )}
               {") "}
@@ -175,13 +175,17 @@ export function StatsDashboard(props) {
                 <AreaChart
                   height={250}
                   width={500}
-                  data={props.stats.dataPerDay.map((tuple) => {
-                    return {
-                      name: tuple.date,
-                      zaprimljeno: tuple.count,
-                      // obrađeno: tuple.solved,
-                    };
-                  })}
+                  data={props.stats.dataPerDay
+                    .map((tuple) => {
+                      return {
+                        name: tuple.date,
+                        zaprimljeno: tuple.count,
+                        // obrađeno: tuple.solved,
+                      };
+                    })
+                    .sort((d1, d2) => {
+                      return d1.name.localeCompare(d2.name);
+                    })}
                   margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                 >
                   <defs>

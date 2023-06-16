@@ -42,6 +42,7 @@ export function CityOfficialHomePage() {
   const { t } = useTranslation();
   // eslint-disable-next-line no-unused-vars
   const [changed, changeChanged] = useState(false);
+
   const user = JSON.parse(sessionStorage.getItem("user"));
   const [typeFilterValue, changeTypeFilterValue] = useState("");
   const [dateFilterValue, changeDateFilterValue] = useState("");
@@ -112,6 +113,8 @@ export function CityOfficialHomePage() {
       .catch(() => {});
   };
   useEffect(() => {
+    if (!sessionStorage.getItem("user")) navigate("/ReportSystem/login");
+
     getReportTypes()
       .then((response) => {
         const types = [];
@@ -141,8 +144,13 @@ export function CityOfficialHomePage() {
     getReports()
       .then((response) => {
         console.log(response.data);
+        const temp = response.data.map((r) => {
+          r.date = r.date.replace(" ", "T");
+          return r;
+        });
         changeEvents(response.data);
-        getStats(response.data).then((resp) => {
+        getStats(temp).then((resp) => {
+          console.log(resp.data);
           changeStats(resp.data);
         });
       })
@@ -177,313 +185,321 @@ export function CityOfficialHomePage() {
     });
   };
   return (
-    <div className="citizen-home-page">
-      <AppHeader></AppHeader>
-      <div id="tab-menu">
-        <TabContext value={value}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <TabList onChange={handleTabChange} value={value} centered>
-              <Tab label={t("cityMap")} value="0" icon={<MapIcon />} />
-              <Tab
+    user && (
+      <div className="citizen-home-page">
+        <AppHeader></AppHeader>
+        <div id="tab-menu">
+          <TabContext value={value}>
+            <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+              <TabList onChange={handleTabChange} value={value} centered>
+                <Tab label={t("cityMap")} value="0" icon={<MapIcon />} />
+                <Tab
+                  label={t("statistics")}
+                  value="1"
+                  icon={<QueryStatsIcon />}
+                />
+                <Tab label={t("logout")} icon={<LogoutIcon />} value="-1"></Tab>
+              </TabList>
+            </Box>
+            <TabPanel value="0">
+              <div className="flex-wrapper">
+                <div className="flex-cont">
+                  <div className="personal-info">
+                    <Avatar src={user.picture} />
+                    <span style={{ marginLeft: "15px", display: "block" }}>
+                      {user.first_name + " " + user.last_name}
+                    </span>
+                  </div>
+                  <div className="mailbox">
+                    <Badge
+                      badgeContent={
+                        events.filter(
+                          (e) => e.approved === false && e.id !== -1
+                        ).length
+                      }
+                      color="primary"
+                    >
+                      <MailIcon color="action" />
+                    </Badge>
+                  </div>
+                  {warnings.length > 0 && (
+                    <div className="mailbox">
+                      <IconButton onClick={handleClick}>
+                        <Badge badgeContent={warnings.length} color="primary">
+                          <NotificationImportantIcon
+                            sx={{ color: "red" }}
+                            color="action"
+                          />
+                        </Badge>
+                      </IconButton>
+
+                      <Menu
+                        id="long-menu"
+                        MenuListProps={{
+                          "aria-labelledby": "long-button",
+                        }}
+                        anchorEl={anchorEl}
+                        open={open}
+                        onClose={handleClose}
+                        PaperProps={{
+                          style: {
+                            maxHeight: 48 * 4.5,
+                            width: "320px",
+                          },
+                        }}
+                      >
+                        {warnings.map((option) => (
+                          <MenuItem
+                            key={option.id}
+                            // selected={option === "Pyxis"}
+                            onClick={() => handleSelectWarn(option.id)}
+                          >
+                            {option.level === "HIGH" ? (
+                              <WarningIcon
+                                sx={{ color: "red", marginRight: "10px" }}
+                              ></WarningIcon>
+                            ) : (
+                              <LightbulbIcon
+                                sx={{ color: "orange", marginRight: "10px" }}
+                              ></LightbulbIcon>
+                            )}
+                            {" #" +
+                              option.id +
+                              " : " +
+                              option.date.split(".")[0].replace("T", " ") +
+                              " - " +
+                              t(option.level)}
+                          </MenuItem>
+                        ))}
+                      </Menu>
+                    </div>
+                  )}
+                  <div className="filters">
+                    <TextField
+                      value={typeFilterValue}
+                      onChange={changeTypeFilterValueWrapper}
+                      select // tell TextField to render select
+                      label={t("type")}
+                      sx={{ m: 1, minWidth: 200 }}
+                    >
+                      <MenuItem value="all">{t("all")}</MenuItem>
+                      {reportTypes.map((ss) => {
+                        return (
+                          <MenuItem key={ss.value} value={ss.value}>
+                            {t(ss.label)}
+                          </MenuItem>
+                        );
+                      })}
+                    </TextField>
+
+                    <TextField
+                      value={dateFilterValue}
+                      onChange={changeDateFilterValueWrapper}
+                      select // tell TextField to render select
+                      label={t("timePeriod")}
+                      sx={{ m: 1, minWidth: 200 }}
+                    >
+                      <MenuItem value="all">{t("all")}</MenuItem>
+                      {dateFilterValues.map((ss) => {
+                        return (
+                          <MenuItem key={ss} value={ss}>
+                            {t(ss)}
+                          </MenuItem>
+                        );
+                      })}
+                    </TextField>
+                    <TextField
+                      value={stateFilterValue}
+                      onChange={changeStateFilterValueWrapper}
+                      select // tell TextField to render select
+                      label={t("state")}
+                      sx={{ m: 1, minWidth: 200 }}
+                    >
+                      <MenuItem value="all">{t("all")}</MenuItem>
+                      <MenuItem value="true">{t("approved")}</MenuItem>
+                      <MenuItem value="false">{t("waiting")}</MenuItem>
+                    </TextField>
+                    <TextField
+                      value={addressFilterValue}
+                      onChange={changeAddressFilterValueWrapper}
+                      label={t("address")}
+                      sx={{ m: 1, minWidth: 300 }}
+                    ></TextField>
+                  </div>
+                </div>
+                <CityMap
+                  events={events}
+                  showSettings={true}
+                  render={render}
+                  warnings={warnings}
+                ></CityMap>
+              </div>
+            </TabPanel>
+            <TabPanel value="1">
+              <div className="flex-wrapper">
+                <div className="flex-cont">
+                  <div className="personal-info">
+                    <Avatar src={user.picture} />
+                    <span style={{ marginLeft: "15px", display: "block" }}>
+                      {user.first_name + " " + user.last_name}
+                    </span>
+                  </div>
+                  <div className="mailbox">
+                    <Badge
+                      badgeContent={
+                        events.filter(
+                          (e) => e.approved === false && e.id !== -1
+                        ).length
+                      }
+                      color="primary"
+                    >
+                      <MailIcon color="action" />
+                    </Badge>{" "}
+                  </div>
+                  {warnings.length > 0 && (
+                    <div className="mailbox">
+                      <IconButton onClick={handleClick}>
+                        <Badge badgeContent={warnings.length} color="primary">
+                          <NotificationImportantIcon
+                            sx={{ color: "red" }}
+                            color="action"
+                          />
+                        </Badge>
+                      </IconButton>
+
+                      <Menu
+                        id="long-menu"
+                        MenuListProps={{
+                          "aria-labelledby": "long-button",
+                        }}
+                        anchorEl={anchorEl}
+                        open={open}
+                        onClose={handleClose}
+                        PaperProps={{
+                          style: {
+                            maxHeight: 48 * 4.5,
+                            width: "320px",
+                          },
+                        }}
+                      >
+                        {warnings.map((option) => (
+                          <MenuItem
+                            key={option.id}
+                            // selected={option === "Pyxis"}
+                            onClick={() => handleSelectWarn(option.id)}
+                          >
+                            {option.level === "HIGH" ? (
+                              <WarningIcon
+                                sx={{ color: "red", marginRight: "10px" }}
+                              ></WarningIcon>
+                            ) : (
+                              <LightbulbIcon
+                                sx={{ color: "orange", marginRight: "10px" }}
+                              ></LightbulbIcon>
+                            )}
+                            {" #" +
+                              option.id +
+                              " : " +
+                              option.date.split(".")[0].replace("T", " ") +
+                              " - " +
+                              t(option.level)}
+                          </MenuItem>
+                        ))}
+                      </Menu>
+                    </div>
+                  )}
+
+                  <div className="filters">
+                    <TextField
+                      value={typeFilterValue}
+                      onChange={changeTypeFilterValueWrapper}
+                      select // tell TextField to render select
+                      label={t("type")}
+                      sx={{ m: 1, minWidth: 200 }}
+                    >
+                      <MenuItem value="all">{t("all")}</MenuItem>
+                      {reportTypes.map((ss) => {
+                        return (
+                          <MenuItem key={ss.value} value={ss.value}>
+                            {t(ss.label)}
+                          </MenuItem>
+                        );
+                      })}
+                    </TextField>
+
+                    <TextField
+                      value={dateFilterValue}
+                      onChange={changeDateFilterValueWrapper}
+                      select // tell TextField to render select
+                      label={t("timePeriod")}
+                      sx={{ m: 1, minWidth: 200 }}
+                    >
+                      <MenuItem value="all">{t("all")}</MenuItem>
+                      {dateFilterValues.map((ss) => {
+                        return (
+                          <MenuItem key={ss} value={ss}>
+                            {t(ss)}
+                          </MenuItem>
+                        );
+                      })}
+                    </TextField>
+                    <TextField
+                      value={stateFilterValue}
+                      onChange={changeStateFilterValueWrapper}
+                      select // tell TextField to render select
+                      label={t("state")}
+                      sx={{ m: 1, minWidth: 200 }}
+                    >
+                      <MenuItem value="all">{t("all")}</MenuItem>
+                      <MenuItem value="true">{t("approved")}</MenuItem>
+                      <MenuItem value="false">{t("waiting")}</MenuItem>
+                    </TextField>
+                    <TextField
+                      value={addressFilterValue}
+                      onChange={changeAddressFilterValueWrapper}
+                      label={t("address")}
+                      sx={{ m: 1, minWidth: 300 }}
+                    ></TextField>
+                  </div>
+                </div>
+                <StatsDashboard stats={stats}></StatsDashboard>
+              </div>
+            </TabPanel>
+          </TabContext>
+        </div>
+        <div id="lng-select">
+          <LanguageSelector></LanguageSelector>
+        </div>
+
+        <div id="bottom-menu">
+          <Box sx={{ centered: true }}>
+            <BottomNavigation
+              showLabels
+              value={value}
+              onChange={handleTabChange}
+            >
+              <BottomNavigationAction
+                label={t("cityMap")}
+                value="0"
+                icon={<MapIcon />}
+              />
+              <BottomNavigationAction
                 label={t("statistics")}
                 value="1"
                 icon={<QueryStatsIcon />}
               />
-              <Tab label={t("logout")} icon={<LogoutIcon />} value="-1"></Tab>
-            </TabList>
+              <BottomNavigationAction
+                label={t("logoutMobile")}
+                value="-1"
+                icon={<LogoutIcon />}
+              />
+            </BottomNavigation>
           </Box>
-          <TabPanel value="0">
-            <div className="flex-wrapper">
-              <div className="flex-cont">
-                <div className="personal-info">
-                  <Avatar src={user.picture} />
-                  <span style={{ marginLeft: "15px", display: "block" }}>
-                    {user.first_name + " " + user.last_name}
-                  </span>
-                </div>
-                <div className="mailbox">
-                  <Badge
-                    badgeContent={
-                      events.filter((e) => e.approved === false && e.id !== -1)
-                        .length
-                    }
-                    color="primary"
-                  >
-                    <MailIcon color="action" />
-                  </Badge>
-                </div>
-                {warnings.length > 0 && (
-                  <div className="mailbox">
-                    <IconButton onClick={handleClick}>
-                      <Badge badgeContent={warnings.length} color="primary">
-                        <NotificationImportantIcon
-                          sx={{ color: "red" }}
-                          color="action"
-                        />
-                      </Badge>
-                    </IconButton>
-
-                    <Menu
-                      id="long-menu"
-                      MenuListProps={{
-                        "aria-labelledby": "long-button",
-                      }}
-                      anchorEl={anchorEl}
-                      open={open}
-                      onClose={handleClose}
-                      PaperProps={{
-                        style: {
-                          maxHeight: 48 * 4.5,
-                          width: "320px",
-                        },
-                      }}
-                    >
-                      {warnings.map((option) => (
-                        <MenuItem
-                          key={option.id}
-                          // selected={option === "Pyxis"}
-                          onClick={() => handleSelectWarn(option.id)}
-                        >
-                          {option.level === "HIGH" ? (
-                            <WarningIcon
-                              sx={{ color: "red", marginRight: "10px" }}
-                            ></WarningIcon>
-                          ) : (
-                            <LightbulbIcon
-                              sx={{ color: "orange", marginRight: "10px" }}
-                            ></LightbulbIcon>
-                          )}
-                          {" #" +
-                            option.id +
-                            " : " +
-                            option.date.split(".")[0].replace("T", " ") +
-                            " - " +
-                            t(option.level)}
-                        </MenuItem>
-                      ))}
-                    </Menu>
-                  </div>
-                )}
-                <div className="filters">
-                  <TextField
-                    value={typeFilterValue}
-                    onChange={changeTypeFilterValueWrapper}
-                    select // tell TextField to render select
-                    label={t("type")}
-                    sx={{ m: 1, minWidth: 200 }}
-                  >
-                    <MenuItem value="all">{t("all")}</MenuItem>
-                    {reportTypes.map((ss) => {
-                      return (
-                        <MenuItem key={ss.value} value={ss.value}>
-                          {t(ss.label)}
-                        </MenuItem>
-                      );
-                    })}
-                  </TextField>
-
-                  <TextField
-                    value={dateFilterValue}
-                    onChange={changeDateFilterValueWrapper}
-                    select // tell TextField to render select
-                    label={t("timePeriod")}
-                    sx={{ m: 1, minWidth: 200 }}
-                  >
-                    <MenuItem value="all">{t("all")}</MenuItem>
-                    {dateFilterValues.map((ss) => {
-                      return (
-                        <MenuItem key={ss} value={ss}>
-                          {t(ss)}
-                        </MenuItem>
-                      );
-                    })}
-                  </TextField>
-                  <TextField
-                    value={stateFilterValue}
-                    onChange={changeStateFilterValueWrapper}
-                    select // tell TextField to render select
-                    label={t("state")}
-                    sx={{ m: 1, minWidth: 200 }}
-                  >
-                    <MenuItem value="all">{t("all")}</MenuItem>
-                    <MenuItem value="true">{t("approved")}</MenuItem>
-                    <MenuItem value="false">{t("waiting")}</MenuItem>
-                  </TextField>
-                  <TextField
-                    value={addressFilterValue}
-                    onChange={changeAddressFilterValueWrapper}
-                    label={t("address")}
-                    sx={{ m: 1, minWidth: 300 }}
-                  ></TextField>
-                </div>
-              </div>
-              <CityMap
-                events={events}
-                showSettings={true}
-                render={render}
-                warnings={warnings}
-              ></CityMap>
-            </div>
-          </TabPanel>
-          <TabPanel value="1">
-            <div className="flex-wrapper">
-              <div className="flex-cont">
-                <div className="personal-info">
-                  <Avatar src={user.picture} />
-                  <span style={{ marginLeft: "15px", display: "block" }}>
-                    {user.first_name + " " + user.last_name}
-                  </span>
-                </div>
-                <div className="mailbox">
-                  <Badge
-                    badgeContent={
-                      events.filter((e) => e.approved === false && e.id !== -1)
-                        .length
-                    }
-                    color="primary"
-                  >
-                    <MailIcon color="action" />
-                  </Badge>{" "}
-                </div>
-                {warnings.length > 0 && (
-                  <div className="mailbox">
-                    <IconButton onClick={handleClick}>
-                      <Badge badgeContent={warnings.length} color="primary">
-                        <NotificationImportantIcon
-                          sx={{ color: "red" }}
-                          color="action"
-                        />
-                      </Badge>
-                    </IconButton>
-
-                    <Menu
-                      id="long-menu"
-                      MenuListProps={{
-                        "aria-labelledby": "long-button",
-                      }}
-                      anchorEl={anchorEl}
-                      open={open}
-                      onClose={handleClose}
-                      PaperProps={{
-                        style: {
-                          maxHeight: 48 * 4.5,
-                          width: "320px",
-                        },
-                      }}
-                    >
-                      {warnings.map((option) => (
-                        <MenuItem
-                          key={option.id}
-                          // selected={option === "Pyxis"}
-                          onClick={() => handleSelectWarn(option.id)}
-                        >
-                          {option.level === "HIGH" ? (
-                            <WarningIcon
-                              sx={{ color: "red", marginRight: "10px" }}
-                            ></WarningIcon>
-                          ) : (
-                            <LightbulbIcon
-                              sx={{ color: "orange", marginRight: "10px" }}
-                            ></LightbulbIcon>
-                          )}
-                          {" #" +
-                            option.id +
-                            " : " +
-                            option.date.split(".")[0].replace("T", " ") +
-                            " - " +
-                            t(option.level)}
-                        </MenuItem>
-                      ))}
-                    </Menu>
-                  </div>
-                )}
-
-                <div className="filters">
-                  <TextField
-                    value={typeFilterValue}
-                    onChange={changeTypeFilterValueWrapper}
-                    select // tell TextField to render select
-                    label={t("type")}
-                    sx={{ m: 1, minWidth: 200 }}
-                  >
-                    <MenuItem value="all">{t("all")}</MenuItem>
-                    {reportTypes.map((ss) => {
-                      return (
-                        <MenuItem key={ss.value} value={ss.value}>
-                          {t(ss.label)}
-                        </MenuItem>
-                      );
-                    })}
-                  </TextField>
-
-                  <TextField
-                    value={dateFilterValue}
-                    onChange={changeDateFilterValueWrapper}
-                    select // tell TextField to render select
-                    label={t("timePeriod")}
-                    sx={{ m: 1, minWidth: 200 }}
-                  >
-                    <MenuItem value="all">{t("all")}</MenuItem>
-                    {dateFilterValues.map((ss) => {
-                      return (
-                        <MenuItem key={ss} value={ss}>
-                          {t(ss)}
-                        </MenuItem>
-                      );
-                    })}
-                  </TextField>
-                  <TextField
-                    value={stateFilterValue}
-                    onChange={changeStateFilterValueWrapper}
-                    select // tell TextField to render select
-                    label={t("state")}
-                    sx={{ m: 1, minWidth: 200 }}
-                  >
-                    <MenuItem value="all">{t("all")}</MenuItem>
-                    <MenuItem value="true">{t("approved")}</MenuItem>
-                    <MenuItem value="false">{t("waiting")}</MenuItem>
-                  </TextField>
-                  <TextField
-                    value={addressFilterValue}
-                    onChange={changeAddressFilterValueWrapper}
-                    label={t("address")}
-                    sx={{ m: 1, minWidth: 300 }}
-                  ></TextField>
-                </div>
-              </div>
-              <StatsDashboard stats={stats}></StatsDashboard>
-            </div>
-          </TabPanel>
-        </TabContext>
+        </div>
+        <div id="footer">
+          <AppFooter></AppFooter>
+        </div>
       </div>
-      <div id="lng-select">
-        <LanguageSelector></LanguageSelector>
-      </div>
-
-      <div id="bottom-menu">
-        <Box sx={{ centered: true }}>
-          <BottomNavigation showLabels value={value} onChange={handleTabChange}>
-            <BottomNavigationAction
-              label={t("cityMap")}
-              value="0"
-              icon={<MapIcon />}
-            />
-            <BottomNavigationAction
-              label={t("statistics")}
-              value="1"
-              icon={<QueryStatsIcon />}
-            />
-            <BottomNavigationAction
-              label={t("logoutMobile")}
-              value="-1"
-              icon={<LogoutIcon />}
-            />
-          </BottomNavigation>
-        </Box>
-      </div>
-      <div id="footer">
-        <AppFooter></AppFooter>
-      </div>
-    </div>
+    )
   );
 }

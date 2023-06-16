@@ -19,7 +19,6 @@ import { AppFooter } from "../../layouts/AppFooter";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import "../../assets/style/CitizenHomePage.css";
-
 import {
   getReportTypes,
   postReport,
@@ -88,6 +87,8 @@ export function CitizenHomePage() {
       .catch(() => {});
   };
   useEffect(() => {
+    if (!sessionStorage.getItem("user")) navigate("/ReportSystem/login");
+
     getReportTypes()
       .then((response) => {
         const types = [];
@@ -141,11 +142,13 @@ export function CitizenHomePage() {
         });
         setTimeout(messageApi.destroy, 3000);
       } else {
+        console.log("position:");
+        console.log(position);
         const reportRequest = {
           content: values.content,
           type: values.type,
-          x: position.lat,
-          y: position.lng,
+          x: position[0],
+          y: position[1],
           id: ident,
         };
         postReport(reportRequest)

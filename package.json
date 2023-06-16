@@ -2,7 +2,6 @@
   "name": "incident_report_system",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:8080",
   "dependencies": {
     "@ant-design/icons": "^4.8.0",
     "@emotion/react": "^11.10.5",

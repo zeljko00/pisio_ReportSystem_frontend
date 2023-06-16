@@ -1,42 +1,48 @@
-import { client } from "./axios.service";
+import { reportsClient, statsClient } from "./axios.service";
 
 export function getReportTypes() {
-  return client.get("/reports/types");
+  return reportsClient.get("/reports/types");
 }
 export function getApprovedReports(date, address, type, subtype) {
-  return client.get(
+  console.log(btoa(type));
+  return reportsClient.get(
     "/reports?" +
-      (date !== undefined ? "&dateExp=" + date : "") +
-      (address !== undefined ? "&address=" + address : "") +
-      (type !== undefined ? "&type=" + type : "") +
-      (subtype !== undefined ? "&subtype=" + subtype : "")
+      (date !== undefined ? "&dateExp=" + btoa(date) : "") +
+      (address !== undefined ? "&address=" + btoa(address) : "") +
+      (type !== undefined ? "&type=" + btoa(type) : "") +
+      (subtype !== undefined ? "&subtype=" + btoa(subtype) : "")
   );
 }
 export function getReports(date, address, type, subtype, approval) {
-  return client.get(
+  return reportsClient.get(
     "/reports/queue?" +
       (approval !== undefined ? "approval=" + approval : "") +
-      (date !== undefined ? "&dateExp=" + date : "") +
-      (address !== undefined ? "&address=" + address : "") +
-      (type !== undefined ? "&type=" + type : "") +
-      (subtype !== undefined ? "&subtype=" + subtype : "")
+      (date !== undefined ? "&dateExp=" + btoa(date) : "") +
+      (address !== undefined ? "&address=" + btoa(address) : "") +
+      (type !== undefined ? "&type=" + btoa(type) : "") +
+      (subtype !== undefined ? "&subtype=" + btoa(subtype) : "")
   );
 }
 export function getStats(reports) {
-  return client.post("/stats", JSON.stringify(reports));
+  return statsClient.post("/stats", JSON.stringify(reports));
 }
 export function postReport(report) {
-  return client.post("/reports", report);
+  console.log(report);
+  return reportsClient.post(
+    "/reports?translate=" +
+      (localStorage.getItem("language") === "english" ? "true" : "false"),
+    report
+  );
 }
 export function changeApproval(id, approval) {
-  return client.put("/reports/" + id + "?approval=" + approval);
+  return reportsClient.put("/reports/" + id + "?approval=" + approval);
 }
 export function deleteReport(id) {
-  return client.delete("/reports/" + id);
+  return reportsClient.delete("/reports/" + id);
 }
 
 export function deleteImage(id) {
-  return client.delete("/reports/images/" + id);
+  return reportsClient.delete("/reports/images/" + id);
 }
 
 export function uploadImage(image, id) {
@@ -53,7 +59,7 @@ export function uploadImage(image, id) {
   fmData.append("image", file);
   fmData.append("identificator", id + "--" + file.name);
   try {
-    client.post("/reports/images/upload", fmData, config).then(() => {
+    reportsClient.post("/reports/images/upload", fmData, config).then(() => {
       onSuccess("Ok");
     });
   } catch (err) {
